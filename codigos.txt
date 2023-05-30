@@ -1,0 +1,307 @@
+troco 
+
+#include <stdio.h>
+#include <stdlib.h> // calloc
+
+int * Troco( int C[], int N, int valor);
+int main(){
+    int C[] = {100, 50, 25, 10, 1};
+    int N = 5;
+
+    int *S = Troco(C, N, 37);
+    if( S != NULL ){
+        for(int i=0; i < N; i++)
+            printf("%d ", S[i]);
+        free(S);
+    }
+    return 0;
+}
+int * Troco( int C[], int N, int valor){
+    // S e a solução com as moedas usadas
+    // S <- 0
+    int *S = (int*)calloc(N,sizeof(int)); // int S[N]
+    // soma <- 0
+    int soma = 0, i=0;
+    // enquanto  soma < valor E C ≠ {} faça
+    while( soma < valor && i < N ){
+        // x <- moeda de maior valor em C
+        int x = C[i];
+        // se soma + x  <= valor então
+        if( soma + x <= valor){
+            // soma <- soma + x;
+            soma = soma + x;
+            // S <- S U {x}
+            S[i]++; // S[i] = S[i]+1
+        }
+        else
+            // C <- C – {x}
+            i++;
+
+    }
+    // se soma = valor então
+    if( soma == valor)
+	   // retornar S
+	   return S;
+	else{
+       // retornar "Não encontrei solução"
+       free(S);
+ 	   return NULL;
+
+	}
+}
+
+progamação dinamica 
+#include <stdio.h>
+int Piramide(int P[][5], int i, int j, int N);
+int PiramidePD(int P[][5], int S[][5], int N);
+int main(void){
+    int P[][5] ={{7,0,0,0,0},
+                 {3,8,0,0,0},
+                 {8,1,0,0,0},
+                 {2,7,4,4,0},
+                 {4,5,2,6,5}
+                 };
+    int S[5][5];
+    int resposta = Piramide(P,0,0,5);
+    printf("\nmaior soma do topo ateh a base usando forca-bruta:%d\n",resposta);
+
+    resposta = PiramidePD(P,S,5);
+    printf("\nmaior soma do topo ateh a base usando programcao dinamica:%d\n",resposta);
+    printf("\nfim de programa.\n");
+    return 0;
+}
+// forca bruta complexidade O(2^n)
+int Piramide(int P[][5], int i, int j, int N){
+    // condicao de parada
+    if( i == N-1)
+        return P[i][j];
+    else{
+        int Esq = Piramide(P,i+1,j,N);
+        int Dir = Piramide(P,i+1,j+1,N);
+        if(Esq>Dir)
+            return Esq+P[i][j];
+        else
+            return Dir+P[i][j];
+    }
+}
+// programacao dinamica complexidade O(N^2)
+int PiramidePD(int P[][5], int S[][5], int N){
+    for( int i=N-1; i>=0; i--){
+        for( int j=0; j<=i; j++){
+            if( i == N-1)
+                S[i][j] = P[i][j];
+            else{
+                // testa se o filho esquerdo eh
+                // maior que o filho direito
+                if(S[i+1][j]>S[i+1][j+1])
+                    S[i][j] = S[i+1][j]+P[i][j];
+                else
+                    S[i][j] = S[i+1][j+1]+P[i][j];
+            }
+        }
+    }
+    return S[0][0];
+
+}
+huffman em C
+/*
+ Implemente na linguagem C o algoritmo de Huffman
+ apresentando, considere que o algoritmo tem como
+ entrada uma lista de caracteres e com suas frequ�ncias e
+ como sa�da a �rvore bin�ria de Huffman.
+*/
+#include <stdio.h>
+#include <stdlib.h> // calloc
+
+// definir um tipo para armazenar o No da arvore de Huffman
+typedef struct _TNo{
+    char ch;
+    int freq;
+    struct _TNo *esq, *dir;
+}TNo;
+// declara a funcao
+TNo * Huffman(TNo **L, int N);
+TNo * ExtraiMinimoLista(TNo **L,int *N);
+void InsereNaLista(TNo **L, TNo *z, int *N);
+void imprimeLista(TNo **L,int N);
+void imprimeArvore(TNo *raiz, int espacos);
+
+int main(){
+    TNo **Lista = (TNo**) calloc(8, sizeof(TNo*));
+
+    TNo *elem;
+    printf("%c\n",97);
+    elem = (TNo *) calloc(1, sizeof(TNo));
+    elem->ch = 'a';
+    elem->freq = 2;
+    Lista[0] = elem;
+
+    elem = (TNo *) calloc(1, sizeof(TNo));
+    elem->ch = 'd';
+    elem->freq = 1;
+    Lista[1] = elem;
+
+    elem = (TNo *) calloc(1, sizeof(TNo));
+    elem->ch = 'e';
+    elem->freq = 3;
+    Lista[2] = elem;
+
+    elem = (TNo *) calloc(1, sizeof(TNo));
+    elem->ch = 'i';
+    elem->freq = 1;
+    Lista[3] = elem;
+
+    elem = (TNo *) calloc(1, sizeof(TNo));
+    elem->ch = 'l';
+    elem->freq = 2;
+    Lista[4] = elem;
+
+    elem = (TNo *) calloc(1, sizeof(TNo));
+    elem->ch = 'o';
+    elem->freq = 1;
+    Lista[5] = elem;
+
+    elem = (TNo *) calloc(1, sizeof(TNo));
+    elem->ch = 'p';
+    elem->freq = 3;
+    Lista[6] = elem;
+
+    elem = (TNo *) calloc(1, sizeof(TNo));
+    elem->ch = 'r';
+    elem->freq = 1;
+    Lista[7] = elem;
+
+    TNo *raiz = Huffman(Lista,8);
+    printf("Impressao da arvore de Huffman:\n");
+    imprimeArvore(raiz, 0);
+    return 0;
+}
+TNo * Huffman(TNo **L, int N){
+    // n = |L|
+    //para i = 1 at� n-1 fa�a
+    while( N > 1){
+        //z <- CriaNo()
+        TNo *z = (TNo*)calloc(1, sizeof(TNo));
+        // z.esq <- ExtraiMinimoLista( L )
+        z->ch = '_';
+        //imprimeLista(L,N);
+        z->esq = ExtraiMinimoLista(L,&N);
+        //imprimeLista(L,N);
+        z->dir = ExtraiMinimoLista(L,&N);
+        //imprimeLista(L,N);
+        //z.freq <- z.esq.freq + z.dir.freq
+        z->freq = z->esq->freq + z->dir->freq;
+        //InsereNaLista(L,z)
+        InsereNaLista(L,z,&N);
+        //imprimeLista(L,N);
+    }
+    // retorne ExtraiMinimoLista( L )
+    return ExtraiMinimoLista(L,&N);
+
+}
+TNo * ExtraiMinimoLista(TNo **L,int *N){
+    TNo * menor = L[0];// suponho que o primeiro eh o menor
+    int iMenor = 0;
+    for( int i=1;i<*N;i++){
+        if( menor->freq > L[i]->freq ){
+            menor = L[i];
+            iMenor = i;
+        }
+    }
+    (*N)--;
+    for( int i=iMenor;i<*N;i++)
+        L[i] = L[i+1];
+
+    return menor;
+}
+
+void imprimeLista(TNo **L,int N){
+    printf("\n");
+    for( int i=0;i<N;i++)
+        printf("%c:%d ", L[i]->ch,L[i]->freq);
+}
+void imprimeArvore(TNo *raiz, int espacos){
+    if( raiz ){ // if( raiz != NULL)
+
+        imprimeArvore(raiz->dir, espacos+1);
+        for( int i=0;i<espacos;i++)
+            printf("\t");
+        printf("%c:%d\n", raiz->ch,raiz->freq);
+        imprimeArvore(raiz->esq, espacos+1);
+    }
+}
+void InsereNaLista(TNo **L, TNo *z, int *N){
+    L[*N] = z;
+    (*N)++;
+}
+
+seleção atividades 
+#include <stdio.h>
+#include <stdlib.h> // calloc
+// definir um tipo para armazenar uma atividade
+typedef struct{
+    int s,f;
+}TAtividade;
+// declara a funcao
+TAtividade *selecaoAtividades(TAtividade A[], int N, int *qtd);
+void bolha(TAtividade A[], int N);
+void imprimeAtividades(TAtividade A[], int N);
+
+int main(){
+    TAtividade A[]= {{3,5},{0,6},{5,9},{2,13},{6,10},{3,8},{1,4},{5,7},{12,14}, {8,12},{8,11}};
+    //TAtividade A[]= {{4,5},{0,4},{2,3},{1,2}};
+    int N=11;
+    int qtdSelecionados;
+    printf("\nAtividades de Entrada: ");
+    imprimeAtividades(A,N);
+    TAtividade *S = selecaoAtividades(A, N, &qtdSelecionados);
+
+    // imprime as atividades selecionadas no vetor S[]
+    printf("\nAtividades de Selecionadas: ");
+    imprimeAtividades(S,qtdSelecionados);
+
+    free(S);
+
+    return 0;
+}
+TAtividade *selecaoAtividades(TAtividade A[], int N, int  *qtd){
+    TAtividade *S = (TAtividade *) calloc(N,sizeof(TAtividade));
+    //Ordene as atividades em ordem crescente de t�rmino
+    bolha(A,N);
+    *qtd = 1;
+    // S <- {a1}
+    S[0] = A[0];
+    // i <- 1
+    int i = 0;
+    // para j de 2 at� n fa�a
+    for( int j=1; j<N;j++){
+       // se sj >= fi ent�o
+       if(A[j].s>=A[i].f){
+          // S <- S U {aj}
+          S[*qtd] = A[j];
+          (*qtd)++;
+          // i <- j
+          i = j;
+       }
+    }
+
+    return S;
+}
+
+void bolha(TAtividade A[], int N){
+    for(int k=1; k < N; k++){
+        for( int i=0;i<N-k;i++){
+            if(A[i].f>A[i+1].f){
+                TAtividade temp = A[i];
+                A[i]=A[i+1];
+                A[i+1]=temp;
+            }
+        }
+    }
+}
+
+void imprimeAtividades(TAtividade A[], int N){
+    for(int i=0; i < N;i++)
+         printf("s=%d:f=%d ",A[i].s,A[i].f);
+
+}
